@@ -4,9 +4,9 @@ BATCH_SIZE = 32
 IMAGE_SIZE = 256
 
 
-def load_data():
+def load_data(path):
     data = tf.keras.preprocessing.image_dataset_from_directory(
-        "../dataset/PotatoVillage",
+        path,
         seed=123,
         shuffle=True,
         image_size=(IMAGE_SIZE, IMAGE_SIZE),
