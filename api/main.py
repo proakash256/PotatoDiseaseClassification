@@ -4,11 +4,11 @@ import numpy as np
 from io import BytesIO
 from PIL import Image
 import tensorflow as tf
+import requests
 
-MODEL = tf.keras.models.load_model("../models/Simple_CNN/model.keras")
 
 CLASS_NAMES = ["Early Blight", "Late Blight", "Healthy"]
-
+endpoint = "http://localhost:8501/v1/models/CNN_Model:predict"
 app = FastAPI()
 
 
@@ -26,10 +26,13 @@ def read_file_as_image(data) -> np.ndarray:
 async def predict(file: UploadFile = File(...)):
     image = read_file_as_image(await file.read())
     image = np.expand_dims(image, 0)
-
-    prediction = MODEL.predict(image)
-    predicted_class = CLASS_NAMES[np.argmax(prediction[0])]
-    confidence = np.max(prediction[0])
+    json_data = {
+        "instances": image.tolist()
+    }
+    response = requests.post(endpoint, json=json_data)
+    prediction = np.array(response.json()["predictions"][0])
+    predicted_class = CLASS_NAMES[np.argmax(prediction)]
+    confidence = np.max(prediction)
     return {
         'class': predicted_class,
         'confidence': float(confidence)
